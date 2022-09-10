@@ -356,10 +356,10 @@ function tutorialEvents() {
         context.font = "50px SHOWCARD GOTHIC"; 
         context.fillText("Jakekup Sherlock",470, 340);        
         }
-    if(tutorialMusic.currentTime >= 0.60 && tutorialMusic.currentTime <= 2){
+    if(tutorialMusic.currentTime >= 0.6 && tutorialMusic.currentTime <= 2){
         context.fillStyle = "white";
         context.font = "50px SHOWCARD GOTHIC";  
-        context.fillText("Dominik",470, 460);      
+        context.fillText("Dominik",470, 400);      
     }
         if(tutorialMusic.currentTime >= 0.75 && tutorialMusic.currentTime <= 2){
         context.fillStyle = "white";
