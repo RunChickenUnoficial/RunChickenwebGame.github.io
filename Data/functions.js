@@ -1,6 +1,8 @@
 var curframe = 0,beforeFrame = 0;
 let otherIconAnim = false, curChicIcon = 3;
 
+console.log("LETSGOOOO");
+
 function updateMovement(change = 0.2,maxSpeed = 5.9) {
   //updates the movement
   if(isMoving){
