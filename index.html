@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<!-- code.zip 2020 -->
+<html>
+
+<head>
+    <style>
+        body,
+        canvas {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+    <meta charset="UTF-8">
+    </meta> <!-- allows for cyrillic and other exotic text in console.logs -->
+    <title>Run Chicken</title>
+    <link rel="icon" type="image/png" href="Assets/images/favicon/android-chrome-192x192.png" sizes="196x196" />
+    <link rel="icon" type="image/png" href="Assets/images/favicon/android-chrome-512x512.png" sizes="196x196" />
+    <link rel="icon" type="image/png" href="Assets/images/favicon/apple-touch-icon.png" sizes="196x196" />
+    <link rel="icon" type="image/png" href="Assets/images/favicon/favicon-16x16.png" sizes="196x196" />
+    <link rel="icon" type="image/png" href="Assets/images/favicon/favicon-32x32.png" sizes="196x196" />    
+</head>
+
+<body onload="onBodyLoad()">
+    <canvas id="canvas-id" width="800" height="600">
+        <audio loop id="chickenRunningID">
+        <source src="Assets/Audio/chickenRunning.mp3" type="audio/mpeg">
+        </audio>
+        <audio  id="pauseonID">
+        <source src="Assets/Audio/PauseON.mp3" type="audio/mpeg">
+        </audio>
+        <audio  id="pauseoffID">
+        <source src="Assets/Audio/PauseOFF.wav" type="audio/wav">
+        </audio>
+        <audio  id="FartID">
+        <source src="Assets/Audio/Fart.mp3" type="audio/wav">
+        </audio>
+        <audio  id="CreditsIn">
+        <source src="Assets/Audio/CreditsIn.mp3" type="audio/wav">
+        </audio>
+        <audio  id="CreditsOut">
+        <source src="Assets/Audio/CreditsOut.mp3" type="audio/wav">
+        </audio>
+        <audio  id="StartID">
+        <source src="Assets/Audio/startHitted.mp3" type="audio/wav">
+        </audio>
+        <audio id="DeathMemeSoundID">
+        <source src="Assets/Audio/youre-a-stone-luigi.mp3" type="audio/mpeg">
+        </audio>
+        <audio  id="menuClickID">
+        <source src="Assets/Audio/menuClick.mp3" type="audio/mpeg">
+        </audio>
+        <audio  id="SeedID">
+        <source src="Assets/Audio/Seed.mp3" type="audio/mpeg">
+        </audio>
+        <audio  id="CarHitID">
+        <source src="Assets/Audio/CarHit.mp3" type="audio/mpeg">
+        </audio>
+        <audio  id="menumodeClickID">
+        <source src="Assets/Audio/menumodeClick.mp3" type="audio/mpeg">
+        </audio>
+        <audio id="DeathScreamSoundID">
+        <source src="Assets/Audio/deathScream.mp3" type="audio/mpeg">
+        </audio>
+        <audio id="Street-HardID">
+        <source src="Assets/Audio/Music/Street-Hard.mp3" type="audio/mpeg">
+        </audio>
+        <audio id="Street-EasyID">
+        <source src="Assets/Audio/Music/Street-Easy.mp3" type="audio/mpeg">
+        </audio>
+        <audio id="TutorialID">
+        <source src="Assets/Audio/Music/Tutorial_song.mp3" type="audio/mpeg">
+        </audio>
+        <audio id="PauseMenuThemeID" loop>
+        <source src="Assets/Audio/Music/PauseMenuTheme.mp3" type="audio/mpeg">
+        </audio>
+        <audio id="Street-NormalID" loop>
+        <source src="Assets/Audio/Music/Street-Normal.mp3" type="audio/mpeg">
+        </audio>
+        <audio id="DeathMusicID" loop>
+        <source src="Assets/Audio/Music/DeathSFX.mp3" type="audio/mp3">
+        </audio>
+        <audio id="THX">
+        <source src="Assets/Audio/Music/thxSong.mp3" type="audio/mp3">
+        </audio>
+        <audio  loop autoplay id="MenuChickThemeID">
+        <source src="Assets/Audio/Music/MenuChickTheme.mp3" type="audio/mp3">
+        </audio>
+        <audio  id="VictoryID">
+        <source src="Assets/Audio/Music/VictorySing.mp3" type="audio/mp3">
+        </audio>
+        <script>
+            
+		 // How often will the update function from game.js be executed
+            let updateTime,animFramesTime;
+
+            // Create global variables
+            let mouseX, mouseY, key_left, key_up, key_right, key_down, key_a, key_z, isKeyPressed;
+
+            // More global variables
+            let canvas, context;
+
+            // Fullscreen flag
+            let endlessCanvas = false;
+
+            // Access to functions, created in game.js
+            var update, draw, mouseup, mousemove, mousedown, keyup, keydown, init, animateFrames;
+                        
+            const reqAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame || function(callback) {
+                setTimeout(callback, 1000 / 30);
+            };
+
+            localStorage.setItem('storymodeCurSelected',0);
+
+             function download(filename, text) {
+  var element = document.createElement('a');
+  element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+  element.setAttribute('download', filename);
+
+  element.style.display = 'none';
+  document.body.appendChild(element);
+
+  element.click();
+
+  document.body.removeChild(element);
+}
+
+                   document.addEventListener('DOMContentLoaded', init);
+        const SOUNDS = {
+            'clear-throat':null,
+            'doorbell':null,
+            'static':null
+        };
+        let allowSound = true;
+  
+        
+        function play(ev){
+            let p = ev.currentTarget;
+            ev.preventDefault();
+            
+            let fn = p.getAttribute('data-file');
+            let src = './media/' + fn + '.mp3';
+            if( SOUNDS[fn] ){
+                SOUNDS[fn].pause();
+                SOUNDS[fn] = null;
+            }
+            console.log(src);
+            
+            //let audio = document.getElementById("a");
+            let audio = document.createElement('audio');
+            //audio.removeAttribute('controls');
+            //document.body.appendChild(audio);
+            audio.src = src;
+            audio.volume = 0.2;
+            //change the starting position in the file
+            //audio.currentTime = 0.8;
+            if(allowSound){
+                SOUNDS[fn] = audio;
+                audio.setAttribute('data-file', fn);
+                audio.play();
+            }
+            
+            
+            /**********************
+            Event list for <audio> and <video>
+            https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Media_events
+            ***********************/
+            //listen for the event that ends sound
+            audio.addEventListener('playing', goAudio);
+            audio.addEventListener('ended', doneAudio);
+        }
+        
+        function goAudio(ev){
+            console.log(ev.target.src, 'has started playing');
+        }
+        
+        function doneAudio(ev){
+            console.log(ev.target.src, 'has finished playing');
+            let fn = ev.target.getAttribute('data-file');
+            SOUNDS[fn] = null;
+        }
+            // Custom image class - sets imgObj.img.src after imgObj.draw() has been called
+            class MyImage {
+                constructor(src_, backupColor_) {
+                    this.src = src_;
+                    this.backupColor = backupColor_;
+
+                    // Create image object with no source path
+                    this.img = new Image();
+                    this.canDraw = false;
+                    this.drawBackup = false;
+
+                    this.img.onload = ()=>{
+                        this.canDraw = true;
+                    }
+                    this.img.onerror = ()=>{
+                        this.canDraw = false;
+                        this.drawBackup = true;
+                        throw "Unable to load image " + this.src;
+                    }
+                    
+                }
+                draw(x,y,xs,ys) {
+                    if(xs == undefined) {
+                        xs = this.img.width | 100;
+                        ys = this.img.height | 100;
+                    }
+                    // If img.src is undefined - set it
+                    if(!this.img.src) {
+                        // Load image
+                        this.img.src = this.src;
+                    } else if(this.canDraw) {
+                        try {
+                            context.drawImage(this.img, x, y, xs, ys);
+                        } catch(e) {
+                            this.canDraw = false;
+                            this.drawBackup = true;
+                            throw e;
+                        }
+                    } else if(this.drawBackup) {
+                        context.fillStyle = this.backupColor;
+                        context.fillRect(x, y, xs, ys);
+                    }
+                }
+            }                              
+
+            // Attach image objects to global scope
+            (function preloadImages() {
+                // Load all images from ./images folder "BY HAND"
+                const imageObjectList = [{imageName:'backDesert',backupColor:'orange'},{imageName:"ChickenRunning[0]",backupColor:'black'},{imageName:"ChickenRunning[1]",backupColor:'black'},{imageName:"ChickenRunning[2]",backupColor:'black'},{imageName:"ChickenRunning[3]",backupColor:'black'},
+            {imageName:"ChickenRunning[4]",backupColor:'black'},{imageName:"ChickenRunning[5]",backupColor:'black'},
+
+            {imageName:"CarRedStatic", backupColor:'red'},{imageName:"CarBlackStatic", backupColor:'red'},{imageName:"Healthbar", backupColor:'red'},
+
+            {imageName:"Fire[0]",backupColor:'black'},{imageName:"Fire[1]",backupColor:'black'},
+            {imageName:"Fire[2]",backupColor:'black'},{imageName:"Fire[3]",backupColor:'black'},
+
+            {imageName:"WarningforDeadlyCar[0]",backupColor:'black'}, {imageName:"WarningforDeadlyCar[1]",backupColor:'black'},
+            {imageName:"WarningforDeadlyCar[2]",backupColor:'black'}, {imageName:"WarningforDeadlyCar[3]",backupColor:'black'},
+            {imageName:"WarningforDeadlyCar[4]",backupColor:'black'}, {imageName:"WarningforDeadlyCar[5]",backupColor:'black'},
+            {imageName:"WarningforDeadlyCar[6]",backupColor:'black'}, {imageName:"WarningforDeadlyCar[7]",backupColor:'black'},
+
+            {imageName:"ChickenRunning[6]",backupColor:'black'},{imageName:"ChickenRunning[7]",backupColor:'black'},
+
+            {imageName:"ChickenRunning[8]",backupColor:'black'},{imageName:"ChickenRunning[9]",backupColor:'black'},
+            {imageName:"lilDark",backupColor:'gray'},
+            {imageName:"placeholderMod",backupColor:'gray'},{imageName:"run_chicken_logo2",backupColor:'black'},
+            {imageName:"MenuStreetBack",backupColor:'black'},{imageName:"MenuTutorialBack",backupColor:'black'},
+            
+            {imageName:"oc_coolman",backupColor:'black'},
+            {imageName:"oc_fred",backupColor:'black'},
+            {imageName:"oc_justin",backupColor:'black'},
+            {imageName:"oc_repear",backupColor:'black'},
+            {imageName:"oc_Shreder",backupColor:'black'},
+            {imageName:"oc_wildMan",backupColor:'black'},
+
+            {imageName:"oc_Greadead",backupColor:'black'},
+            {imageName:"oc_henchman",backupColor:'black'},
+            {imageName:"oc_humanbeing",backupColor:'black'},
+            {imageName:"oc_wisp",backupColor:'black'},
+            {imageName:"oc_DsOld",backupColor:'black'},
+            {imageName:"oc_pizzaMen",backupColor:'black'},
+
+            {imageName:"ChickenDeathAnim[0]",backupColor:'pink'},{imageName:"ChickenDeathAnim[1]",backupColor:'pink'},
+            {imageName:"ChickenDeathAnim[2]",backupColor:'pink'},{imageName:"ChickenDeathAnim[3]",backupColor:'pink'},
+            {imageName:"ChickenDeathAnim[4]",backupColor:'pink'},{imageName:"ChickenDeathAnim[5]",backupColor:'pink'},
+            {imageName:"ChickenDeathAnim[6]",backupColor:'pink'},{imageName:"ChickenDeathAnim[7]",backupColor:'pink'},
+            {imageName:"ChickenDeathAnim[8]",backupColor:'pink'},{imageName:"ChickenDeathAnim[9]",backupColor:'pink'},
+            {imageName:"ChickenDeathAnim[10]",backupColor:'pink'},{imageName:"ChickenDeathAnim[11]",backupColor:'pink'},
+            {imageName:"ChickenDeathAnim[12]",backupColor:'pink'},{imageName:"ChickenDeathAnim[13]",backupColor:'pink'},
+            {imageName:"ChickenDeathAnim[14]",backupColor:'pink'},{imageName:"ChickenDeathAnim[15]",backupColor:'pink'},
+            {imageName:"ChickenDeathAnim[16]",backupColor:'pink'},{imageName:"ChickenDeathAnim[17]",backupColor:'pink'},
+            {imageName:"ChickenDeathAnim[18]",backupColor:'pink'},{imageName:"ChickenDeathAnim[19]",backupColor:'pink'},
+            {imageName:"ChickenDeathAnim[20]",backupColor:'pink'},{imageName:"ChickenDeathAnim[21]",backupColor:'pink'},{imageName:"ChickenDeathAnim[22]",backupColor:'pink'},
+            {imageName:"ChickenHitted[0]",backupColor:'black'},{imageName:"ChickenHitted[1]",backupColor:'black'},{imageName:"ChickenHitted[2]",backupColor:'black'},
+            {imageName:"ChickenHitted[3]",backupColor:'black'},{imageName:"ChickenHitted[4]",backupColor:'black'},
+            {imageName:"ChickenWinning[0]",backupColor:'pink'},{imageName:"ChickenWinning[1]",backupColor:'pink'},
+            {imageName:"ChickenWinning[2]",backupColor:'pink'},{imageName:"ChickenWinning[3]",backupColor:'pink'},
+            {imageName:"ChickenWinning[4]",backupColor:'pink'},{imageName:"ChickenWinning[5]",backupColor:'pink'},
+            {imageName:"ChickenWinning[6]",backupColor:'pink'},{imageName:"ChickenWinning[7]",backupColor:'pink'},
+            {imageName:"ChickenWinning[8]",backupColor:'pink'},{imageName:"ChickenWinning[9]",backupColor:'pink'},
+            {imageName:"ChickenWinning[10]",backupColor:'pink'},{imageName:"ChickenWinning[11]",backupColor:'pink'},
+            {imageName:"ChickenWinning[12]",backupColor:'pink'},{imageName:"ChickenWinning[13]",backupColor:'pink'},
+            {imageName:"ChickenWinning[14]",backupColor:'pink'},{imageName:"ChickenWinning[15]",backupColor:'pink'},
+
+            {imageName:"iconChicalmostWinning[0]",backupColor:'black'},{imageName:"iconChicalmostWinning[1]",backupColor:'black'},{imageName:"iconChicalmostWinning[2]",backupColor:'black'},
+            {imageName:"iconChicalmostWinning[3]",backupColor:'black'},{imageName:"iconChicalmostWinning[4]",backupColor:'black'},{imageName:"iconChicalmostWinning[5]",backupColor:'black'},
+            {imageName:"iconChicalmostWinning[6]",backupColor:'black'},{imageName:"iconChicalmostWinning[7]",backupColor:'black'},{imageName:"iconChicalmostWinning[8]",backupColor:'black'},
+
+            {imageName:"IconWinningAnim[0]",backupColor:'green'},{imageName:"IconWinningAnim[1]",backupColor:'green'},
+            {imageName:"IconWinningAnim[2]",backupColor:'green'},{imageName:"IconWinningAnim[3]",backupColor:'green'},
+            {imageName:"IconWinningAnim[4]",backupColor:'green'},{imageName:"IconWinningAnim[5]",backupColor:'green'},
+            {imageName:"IconWinningAnim[6]",backupColor:'green'},{imageName:"IconWinningAnim[7]",backupColor:'green'},
+            {imageName:"IconWinningAnim[8]",backupColor:'green'},{imageName:"IconWinningAnim[9]",backupColor:'green'},
+            
+            {imageName:"seed", backupColor:'red'},
+
+            {imageName:"CancelButton", backupColor:'red'},
+            {imageName:"FinishLine", backupColor:'red'},
+            {imageName:"ThanksForPlaying", backupColor:'red'},
+
+            {imageName:"iconChicLosing[0]",backupColor:'black'}, {imageName:"iconChicLosing[1]",backupColor:'black'}, {imageName:"iconChicLosing[2]",backupColor:'black'},
+            {imageName:"iconChicLosing[3]",backupColor:'black'}, {imageName:"iconChicLosing[4]",backupColor:'black'}, {imageName:"iconChicLosing[5]",backupColor:'black'},
+            {imageName:"iconChicLosing[6]",backupColor:'black'}, {imageName:"iconChicLosing[7]",backupColor:'black'}, {imageName:"iconChicLosing[8]",backupColor:'black'},
+            {imageName:"iconChicLosing[9]",backupColor:'black'},
+
+            {imageName:"iconChicOk[0]",backupColor:'green'},{imageName:"iconChicOk[1]",backupColor:'green'},{imageName:"iconChicOk[2]",backupColor:'green'},
+            {imageName:"iconChicOk[3]",backupColor:'green'},{imageName:"iconChicOk[4]",backupColor:'green'},{imageName:"iconChicOk[5]",backupColor:'green'},
+            {imageName:"iconChicOk[6]",backupColor:'green'},{imageName:"iconChicOk[7]",backupColor:'green'},{imageName:"iconChicOk[8]",backupColor:'green'},
+
+            {imageName:"iconChicalmostLosing[0]",backupColor:'black'},{imageName:"iconChicalmostLosing[1]",backupColor:'black'},{imageName:"iconChicalmostLosing[2]",backupColor:'black'},{imageName:"iconChicalmostLosing[3]",backupColor:'black'},
+            {imageName:"iconChicalmostLosing[4]",backupColor:'black'},{imageName:"iconChicalmostLosing[5]",backupColor:'black'},{imageName:"iconChicalmostLosing[6]",backupColor:'black'},
+            {imageName:"iconChicalmostLosing[7]",backupColor:'black'},{imageName:"iconChicalmostLosing[8]",backupColor:'black'},{imageName:"iconChicalmostLosing[9]",backupColor:'black'},
+            
+            
+            {imageName:"menuIcon_Tutorial",backupColor:'black'},{imageName:"menuIcon_Normalmode",backupColor:'black'},
+
+            {imageName:"OptionButtonMunis",backupColor:'black'},{imageName:"OptionButtonPlus",backupColor:'black'},
+            {imageName:"ChickenRunning[10]",backupColor:'black'},{imageName:"ChickenRunning[11]",backupColor:'black'},
+
+            {imageName:"ChickenRunning[12]",backupColor:'black'},{imageName:"ChickenRunning[13]",backupColor:'black'},
+
+            {imageName:"ChickenRunning[14]",backupColor:'black'},{imageName:"ChickenRunning[12]",backupColor:'black'},
+
+            {imageName:"MenuIcon[0]",backupColor:'black'},
+                {imageName:'backStreet',backupColor:'orange'},{imageName:'BackWood',backupColor:'orange'},{imageName:'dogBite[0]',backupColor:'brown'}, {imageName:'dogBite[1]',backupColor:'brown'}, {imageName:'dogBite[2]',backupColor:'brown'}, {imageName:'dogBite[3]',backupColor:'brown'}, {imageName:'dogBite[4]',backupColor:'brown'}, {imageName:'dogRun[0]',backupColor:'brown'}, {imageName:'dogRun[1]',backupColor:'brown'}, {imageName:'dogRun[2]',backupColor:'brown'}, {imageName:'dogRun[3]',backupColor:'brown'}, {imageName:'dogRun[4]',backupColor:'brown'}, {imageName:'dogSleep[0]',backupColor:'brown'}, {imageName:'dogSleep[1]',backupColor:'brown'}, {imageName:'dogSleep[2]',backupColor:'brown'}, {imageName:'dogSleep[3]',backupColor:'brown'}, {imageName:'dogWalk[0]',backupColor:'brown'}, {imageName:'dogWalk[1]',backupColor:'brown'}, {imageName:'dogWalk[2]',backupColor:'brown'}, {imageName:'dogWalk[3]',backupColor:'brown'}, {imageName:'dogWalk[4]',backupColor:'brown'}, {imageName:'femaleAction',backupColor:'blue'}, {imageName:'femaleJump',backupColor:'blue'}, {imageName:'femaleStand',backupColor:'blue'}, {imageName:'femaleWalk1',backupColor:'blue'},];
+
+                // For each element of array - create a global variable
+                for (let i = 0; i < imageObjectList.length; i++) {
+                    let name = imageObjectList[i].imageName,
+                        backupColor = imageObjectList[i].backupColor;
+
+                    // Handle image names like "gosho[21]"
+                    if (name.indexOf("[") > -1) {
+                        let arrayName = name.slice(0, name.indexOf("["));
+                        let arrayNumber = name.slice(name.indexOf("[") + 1, name.indexOf("]"));
+                        if (!window[arrayName]) {
+                            window[arrayName] = [];
+                        }
+                        window[arrayName][arrayNumber] = tryToLoad(name, backupColor);
+                    } else {
+                        // Handle image names like "pesho"
+                        window[name] = tryToLoad(name, backupColor);
+                    }
+                }
+            }());
+
+            function areColliding(Ax, Ay, Awidth, Aheight, Bx, By, Bwidth, Bheight) {
+                if (Bx <= Ax + Awidth) {
+                    if (Ax <= Bx + Bwidth) {
+                        if (By <= Ay + Aheight) {
+                            if (Ay <= By + Bheight) {
+                                return 1;
+                            }
+                        }
+                    }
+                }
+                return 0;
+            };
+
+            function randomInteger(upTo) {
+                return Math.floor(Math.random() * upTo);
+            }
+
+            function drawLine(startX, startY, endX, endY) {
+                // For better performance bunch calls to lineTo without beginPath() and stroke() inbetween.
+                context.beginPath(); // resets the current path
+                context.moveTo(startX, startY);
+                context.lineTo(endX, endY);
+                context.stroke();
+            }
+
+            function tryToLoad(imageNameWithoutDotPng, backupColor) {
+                return new MyImage("./Assets/images/" + imageNameWithoutDotPng + ".png", backupColor);
+            }
+            
+            function tryToLoadWithFullPath(pathAndImageName, backupColor) {
+                return new MyImage(pathAndImageName, backupColor);
+            }
+
+            function drawImage(myImageObject, x, y, xs, ys) {
+                myImageObject.draw(x,y,xs,ys);
+            }
+
+            function isFunction(f) {
+                return typeof(f) == "function";
+            }
+
+            function updateMousePosition(e) {
+                let boundingRect = canvas.getBoundingClientRect();
+                mouseX = e.pageX - boundingRect.x;
+                mouseY = e.pageY - boundingRect.y;
+            }
+            
+            function updateMousePositionTouchEvent(e) {
+                let boundingRect = canvas.getBoundingClientRect();
+                let touchobj = e.changedTouches[0];
+                mouseX = touchobj.pageX - boundingRect.x;
+                mouseY = touchobj.pageY - boundingRect.y;
+            }
+
+            function getCanvas() {
+                // Get canvas element
+                canvas = document.getElementById("canvas-id");
+
+                if (endlessCanvas) {
+                    canvas.width = window.innerWidth;
+                    canvas.height = window.innerHeight;
+
+                    // Change canvas.width and .height on browser resize
+                    window.onresize = function() {
+                        canvas.width = window.innerWidth;
+                        canvas.height = window.innerHeight;
+                    };
+                } else {
+                    // Default canvas size
+                    canvas.width = 1290;
+                    canvas.height = 720;
+                }
+
+                // Get 2d context
+                context = canvas.getContext("2d");
+                context.fillStyle = "#0000ff";
+            }
+            
+            function attachEvents() {
+                // Events for touchscreen devices
+                if ('ontouchstart' in window || navigator.maxTouchPoints) {
+                    isMobile = true;
+                    window.addEventListener("touchstart", function(e) {
+                        // Update global mouseX, mouseY variables
+                        updateMousePositionTouchEvent(e);
+                        if(isFunction(mousedown)){
+                            // Call mousedown from game.js if it exists
+                            mousedown();
+                        }
+                    });
+                    window.addEventListener("touchend", function(e) {
+                        updateMousePositionTouchEvent(e);
+                        if(isFunction(mouseup)) {
+                            mouseup();
+                        }
+                    });
+                    window.addEventListener("touchmove", function(e) {
+                        updateMousePositionTouchEvent(e);
+                    });
+                }
+
+                // Update global mouseX, mouseY variables
+                window.addEventListener("mousemove", function(e) {
+                    updateMousePosition(e);
+                });
+
+                // Call mousemove, mouseup, mousedown function from game.js if they exist
+                if (isFunction(mousemove)) {
+                    window.addEventListener("mousemove", mousemove);
+                }
+                if (isFunction(mouseup)) {
+                    window.addEventListener("mouseup", mouseup);
+                }
+                if (isFunction(mousedown)) {
+                    window.addEventListener("mousedown", mousedown);
+                }
+
+                // Update global isKeyPressed array
+                window.addEventListener("keydown", function(e) {
+                    isKeyPressed[e.keyCode] = 1;
+                    if(isFunction(keydown)) {
+                        keydown(e.keyCode);
+                    }
+                });
+                window.addEventListener("keyup", function(e) {
+                    isKeyPressed[e.keyCode] = 0;
+                    if(isFunction(keyup)) {
+                        keyup(e.keyCode);
+                    }
+                });
+            }
+            // Redraw will be executed many times
+            function redraw() {
+                // Clear the canvas
+                context.clearRect(0, 0, canvas.width, canvas.height);
+
+                context.globalAlpha = 1;
+                context.font = "10px Arial";
+                context.fillStyle = "blue";
+                context.textBaseline = "top";
+
+                // Call draw function from game.js
+                draw();
+
+                
+                // Call redraw after some time (the browser decides this time)
+                reqAnimationFrame(redraw);
+            };
+
+            function initGlobalVariables() {
+                updateTime = 10;
+                animFramesTime = 10;
+                mouseX = 0;
+                mouseX = 0;
+                mouseY = 0; 
+                key_left = 37; 
+                key_up = 38; 
+                key_right = 39; 
+                key_down = 40; 
+                key_a = 65; 
+                key_z = 90; 
+                isKeyPressed = new Array(256).fill(0);
+            }
+            function drawError() {
+                // Draw error text on canvas 
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                context.globalAlpha = 1;
+                context.fillStyle = "#FF0000";
+                context.font = "20px Arial";
+                context.fillText("Press <F12> for error info!", 40, 40);
+            }
+            // Starts game when body element is loaded
+            function onBodyLoad() {
+
+                initGlobalVariables();
+
+                getCanvas();
+
+                attachEvents();
+
+                if (!isFunction(draw)) {
+                    // Draw error on canvas when function draw is not in game.js
+                    drawError();
+                    throw new TypeError("draw is not a function (in game.js)");
+                }
+
+                // Call programmers init function if it exists in game.js
+                if(isFunction(init)) {
+                    init();
+                }
+
+                if(!isFunction(animateFrames)) {
+                    // Draw error on canvas when function update is not in game.js
+                    drawError();
+                    throw new TypeError("animateFrames is not a function (in game.js)");
+                }
+
+                if(!isFunction(update)) {
+                    // Draw error on canvas when function update is not in game.js
+                    drawError();
+                    throw new TypeError("update is not a function (in game.js)");
+                }
+                redraw();
+                setInterval(update, updateTime);
+                setInterval(animateFrames, animFramesTime);
+            }
+        </script>
+        <!-- user's game files -->
+        <script src="Assets/Data/main.js"></script>
+        <script src="Assets/Data/mainMenu.js"></script>
+        <script src="Assets/Data/pauseMenu.js"></script>
+        <script src="Assets/Data/functions.js"></script>
+        <script src="Assets/Data/deadScreen.js"></script>
+        <script src="Assets/Data/victoryScreen.js"></script>
+        <script src="Assets/Data/CreditsPreMenu.js"></script>
+        <script src="Assets/Data/OptionsPreMenu.js"></script>
+        <script src="Assets/Data/Pack/HealthBar.js"></script>
+        <script src="http://code.jquery.com/jquery-1.8.2.js"></script>
+    </canvas>
+</body>
+
+</html>
