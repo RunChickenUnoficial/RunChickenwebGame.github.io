@@ -373,7 +373,7 @@
             }
 
             function tryToLoad(imageNameWithoutDotPng, backupColor) {
-                return new MyImage("./Assets/images/" + imageNameWithoutDotPng + ".png", backupColor);
+                return new MyImage("./" + imageNameWithoutDotPng + ".png", backupColor);
             }
             
             function tryToLoadWithFullPath(pathAndImageName, backupColor) {
